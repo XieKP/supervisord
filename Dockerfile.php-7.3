@@ -1,0 +1,59 @@
+FROM  php:7.4-cli
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"; \
+    sed -i "/memory_limit/ s/128M/512M/"  $PHP_INI_DIR/php.ini  
+
+ADD https://raw.githubusercontent.com/mlocati/docker-php-extension-installer/master/install-php-extensions /usr/local/bin/
+
+RUN set -eux; \
+        chmod uga+x /usr/local/bin/install-php-extensions; \
+        sync; \
+        install-php-extensions bcmath \
+   amqp \
+   apcu \
+   bz2 \
+   calendar \
+   exif \
+   gettext \
+   gmp \
+   igbinary \
+   imap \
+   ldap \
+   intl \
+   mcrypt \
+   mongodb \
+   msgpack \
+   mysqli \
+   odbc  \
+   pcntl \
+   pdo_mysql  \
+   pdo_odbc \
+   redis \
+   shmop \
+   snmp \
+   soap \
+   sockets \
+   sysvmsg \
+   sysvsem \
+   sysvshm \
+   wddx \
+   xmlrpc \
+   xsl \
+   zip  \
+   gd 
+
+RUN set -eux; \
+        apt-get update; \
+        apt-get install -y --no-install-recommends \
+                        procps \
+                        python \
+                        supervisor; \
+        rm -rf /var/lib/apt/lists/*
+
+COPY supervisord.conf /etc/supervisord/supervisord.conf
+
+VOLUME [/etc/supervisor/conf.d]
+
+WORKDIR /etc/supervisor/conf.d
+
+CMD ["supervisord", "-c", "/etc/supervisord/supervisord.conf"]
